@@ -37,6 +37,5 @@ android {
 
 dependencies {
     compileOnly platform(libs.compose.bom)
-    compileOnly libs.compose.runtime
     compileOnly libs.compose.foundation
 }

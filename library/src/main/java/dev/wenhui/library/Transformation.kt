@@ -2,6 +2,7 @@ package dev.wenhui.library
 
 import android.graphics.Matrix
 import android.graphics.RectF
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size

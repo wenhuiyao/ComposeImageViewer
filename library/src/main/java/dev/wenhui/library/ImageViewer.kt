@@ -1,6 +1,7 @@
 package dev.wenhui.library
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -24,7 +25,7 @@ import androidx.compose.ui.node.PointerInputModifierNode
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
-
+import kotlin.math.max
 
 @Composable
 fun ImageViewer(
@@ -48,18 +49,20 @@ private object ImageViewerMeasurePolicy : MeasurePolicy {
             "ImageViewer can only work with single child"
         }
         check(constraints.hasFixedWidth && constraints.hasFixedHeight) {
-            "ImageViewer must have fixed size"
+            "ImageViewer must have fixed size, it's likely you should use fixMaxSize()"
         }
-        val contentConstraints = constraints.copy(
-            minWidth = 0,
-            minHeight = 0,
-        )
+        val contentConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val placeable = measurables.first().measure(contentConstraints)
-        return layout(constraints.maxWidth, constraints.maxHeight) {
-            placeable.place(
-                (constraints.maxWidth - placeable.width) / 2,
-                (constraints.maxHeight - placeable.height) / 2
+        val layoutWidth = max(placeable.width, constraints.minWidth)
+        val layoutHeight = max(placeable.height, constraints.minHeight)
+        return layout(layoutWidth, layoutHeight) {
+            // Always position child at the center
+            val position = Alignment.Center.align(
+                IntSize(placeable.width, placeable.height),
+                IntSize(layoutWidth, layoutHeight),
+                layoutDirection
             )
+            placeable.place(position)
         }
     }
 }

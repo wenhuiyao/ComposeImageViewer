@@ -1,6 +1,5 @@
 package dev.wenhui.library
 
-import android.util.Log
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateTo
@@ -116,7 +115,7 @@ private class ImageTransformNode(private var imageState: ImageState) :
     private val contentBounds: Rect
         get() = imagePositionNode.contentBounds
     private val currentScale: Float
-        get() = imagePositionNode.imageState.scale
+        get() = imageState.scale
 
     private var transformation = Transformation()
 
@@ -135,7 +134,6 @@ private class ImageTransformNode(private var imageState: ImageState) :
 
     fun update(imageState: ImageState) {
         if (imageState != this.imageState) {
-            Log.d("wenhuiTest", "update: update imageState")
             this.imageState = imageState
             transformation = Transformation()
             transformInternal(
