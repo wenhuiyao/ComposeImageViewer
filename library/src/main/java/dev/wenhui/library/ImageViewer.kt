@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.IntSize
 @Composable
 fun ImageViewer(
     modifier: Modifier = Modifier,
-    enableGesture: Boolean,
+    enableGesture: Boolean = true,
     content: @Composable ImageViewerScope.() -> Unit,
 ) {
     Layout(
