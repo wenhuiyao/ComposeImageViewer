@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import dev.wenhui.library.ImageViewer
+import dev.wenhui.library.rememberImageState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -67,7 +68,7 @@ private fun ImageContentScreen(imageRes: Int, enableGesture: Boolean) {
                 text = loremIpsum(100),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier
-                    .imageContentNode()
+                    .imageContentNode(rememberImageState())
                     .background(color = MaterialTheme.colorScheme.secondaryContainer)
                     .padding(16.dp)
 
@@ -76,7 +77,7 @@ private fun ImageContentScreen(imageRes: Int, enableGesture: Boolean) {
             Image(
                 painter = painterResource(id = imageRes),
                 contentDescription = null,
-                modifier = Modifier.imageContentNode()
+                modifier = Modifier.imageContentNode(rememberImageState())
             )
         }
     }

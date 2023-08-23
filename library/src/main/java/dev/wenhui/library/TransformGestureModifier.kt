@@ -72,7 +72,7 @@ internal class TransformGestureNode(
 
         val initialDown = awaitFirstDown(requireUnconsumed = false)
         if (hasTransformation()) {
-            // Intercept all touch events after image is in transformation state
+            // Intercept all touch events after image is in transformed state
             canConsumeTouch = true
             initialDown.consume()
         }

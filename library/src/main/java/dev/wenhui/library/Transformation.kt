@@ -113,8 +113,6 @@ private class TransformationImpl(val maxScale: Float, val minScale: Float) :
      * 1). If the size of an axis is less than parent's size, don't translate that axis
      * 2). If the size of an axis is larger than parent's size, don't allow content move inside
      *  parent viewport, i.e. left/top can't > parent's left/top
-     *
-     *  @return true if bounds has changes, false otherwise
      */
     private fun ensureContentInBounds(contentBounds: Rect, parentSize: Size) {
         val contentBoundsF = contentBounds.toAndroidRectF()
@@ -158,7 +156,7 @@ private class TransformationImpl(val maxScale: Float, val minScale: Float) :
         }
     }
 
-    fun Rect.toAndroidRectF(): RectF {
+    private fun Rect.toAndroidRectF(): RectF {
         contentBoundsHolder.set(left, top, right, bottom)
         return contentBoundsHolder
     }

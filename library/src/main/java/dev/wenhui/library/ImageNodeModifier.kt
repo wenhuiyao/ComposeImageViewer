@@ -1,18 +1,14 @@
 package dev.wenhui.library
 
+import android.util.Log
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateTo
 import androidx.compose.animation.core.spring
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasureResult
@@ -33,25 +29,26 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 
-fun Modifier.imageNode() =
+fun Modifier.imageNode(imageState: ImageState) =
     // ImagePositionElement must be before ImageTransformElement
-    this then ImagePositionElement then ImageTransformElement
+    this then ImagePositionElement(imageState) then ImageTransformElement(imageState)
 
 private val ImagePositionNodeLocal =
     modifierLocalOf<ImagePositionNode> { error("Missing ImagePositionNode") }
 
-private object ImagePositionElement : ModifierNodeElement<ImagePositionNode>() {
-    override fun create(): ImagePositionNode = ImagePositionNode()
-    override fun update(node: ImagePositionNode) {}
-    override fun equals(other: Any?): Boolean = other === this
-    override fun hashCode(): Int = "imagePosition".hashCode()
+private data class ImagePositionElement(private val imageState: ImageState) :
+    ModifierNodeElement<ImagePositionNode>() {
+    override fun create(): ImagePositionNode = ImagePositionNode(imageState)
+    override fun update(node: ImagePositionNode) {
+        node.imageState = imageState
+    }
 }
 
 /**
  * Must separate [ImagePositionNode] from [ImageTransformNode] so [ImageTransformNode] can observe
  * layout bounds changed.
  */
-private class ImagePositionNode :
+private class ImagePositionNode(var imageState: ImageState) :
     Modifier.Node(),
     LayoutModifierNode,
     ModifierLocalModifierNode,
@@ -61,24 +58,8 @@ private class ImagePositionNode :
     override val providedValues: ModifierLocalMap =
         modifierLocalMapOf(ImagePositionNodeLocal to this)
 
-    var translation by mutableStateOf(Offset.Zero)
-        private set
-    var scale by mutableFloatStateOf(1f)
-        private set
-    var transformOrigin by mutableStateOf(TransformOrigin.Center)
-        private set
     var contentBounds: Rect = Rect.Zero
         private set
-
-    fun position(
-        scale: Float,
-        translation: Offset,
-        transformOrigin: TransformOrigin
-    ) {
-        this.scale = scale
-        this.transformOrigin = transformOrigin
-        this.translation = translation
-    }
 
     override fun onRemeasured(size: IntSize) {
         // If content has changed, make sure reset our content bounds
@@ -98,19 +79,16 @@ private class ImagePositionNode :
         val placeable = measurable.measure(constraints)
         return layout(placeable.width, placeable.height) {
             placeable.placeWithLayer(0, 0, layerBlock = {
-                translationX = translation.x
-                translationY = translation.y
-                transformOrigin = this@ImagePositionNode.transformOrigin
-                scaleX = scale
-                scaleY = scale
+                translationX = imageState.translation.x
+                translationY = imageState.translation.y
+                transformOrigin = imageState.transformOrigin
+                scaleX = imageState.scale
+                scaleY = imageState.scale
             })
         }
     }
 
     override fun onReset() {
-        translation = Offset.Zero
-        scale = 1f
-        transformOrigin = TransformOrigin.Center
         contentBounds = Rect.Zero
     }
 
@@ -118,14 +96,15 @@ private class ImagePositionNode :
 
 private const val MIN_DOUBLE_TAP_SCALE_FACTOR = 1.8f
 
-private object ImageTransformElement : ModifierNodeElement<ImageTransformNode>() {
-    override fun create(): ImageTransformNode = ImageTransformNode()
-    override fun update(node: ImageTransformNode) {}
-    override fun equals(other: Any?): Boolean = other === this
-    override fun hashCode(): Int = "imageTransform".hashCode()
+private data class ImageTransformElement(private val imageState: ImageState) :
+    ModifierNodeElement<ImageTransformNode>() {
+    override fun create(): ImageTransformNode = ImageTransformNode(imageState)
+    override fun update(node: ImageTransformNode) {
+        node.update(imageState)
+    }
 }
 
-private class ImageTransformNode :
+private class ImageTransformNode(private var imageState: ImageState) :
     Modifier.Node(),
     ModifierLocalModifierNode,
     GlobalPositionAwareModifierNode,
@@ -137,9 +116,9 @@ private class ImageTransformNode :
     private val contentBounds: Rect
         get() = imagePositionNode.contentBounds
     private val currentScale: Float
-        get() = imagePositionNode.scale
+        get() = imagePositionNode.imageState.scale
 
-    private var imageTransform = Transformation()
+    private var transformation = Transformation()
 
     private var parentSize: Size = Size.Zero
     private lateinit var layoutCoordinates: LayoutCoordinates
@@ -154,17 +133,30 @@ private class ImageTransformNode :
         parentSize = coordinates.parentLayoutCoordinates!!.size.toSize()
     }
 
+    fun update(imageState: ImageState) {
+        if (imageState != this.imageState) {
+            Log.d("wenhuiTest", "update: update imageState")
+            this.imageState = imageState
+            transformation = Transformation()
+            transformInternal(
+                translationDelta = imageState.translation,
+                scaleDelta = imageState.scale,
+                localPivot = contentBounds.center,
+            )
+        }
+    }
+
     override fun onAttach() {
         checkNotNull(ImageNodeProviderLocal.current).providesImageNode(this)
     }
 
     override fun onReset() {
-        imageTransform = Transformation()
+        transformation = Transformation()
         parentSize = Size.Zero
     }
 
     override fun onGestureUpOrCancelled() {
-        if (imagePositionNode.scale < 1f) {
+        if (currentScale < 1f) {
             animateScaleToOrigin()
         }
     }
@@ -188,14 +180,16 @@ private class ImageTransformNode :
         scaleDelta: Float,
         localPivot: Offset,
     ) {
-        val transformResult = imageTransform.applyTransform(
+        val transformResult = transformation.applyTransform(
             contentBounds = contentBounds,
             parentSize = parentSize,
             scaleDelta = scaleDelta,
             translationDelta = translationDelta,
             pivot = localPivot,
         )
-        imagePositionNode.position(
+        // This will trigger imageState snapshot state update, that will trigger
+        // imagePositionNode graphicsLayer update
+        imageState.updatePosition(
             scale = transformResult.scale,
             translation = transformResult.translation,
             transformOrigin = transformResult.transformOrigin

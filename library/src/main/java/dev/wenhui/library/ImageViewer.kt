@@ -66,11 +66,12 @@ private object ImageViewerMeasurePolicy : MeasurePolicy {
 
 interface ImageViewerScope {
     /** Child content must call this to enable image transformation */
-    fun Modifier.imageContentNode(): Modifier
+    fun Modifier.imageContentNode(imageState: ImageState): Modifier
 }
 
 private object ImageViewerScopeImpl : ImageViewerScope {
-    override fun Modifier.imageContentNode(): Modifier = this then imageNode()
+    override fun Modifier.imageContentNode(imageState: ImageState): Modifier =
+        this then imageNode(imageState)
 }
 
 internal interface ImageNodeProvider {
