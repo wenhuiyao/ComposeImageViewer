@@ -25,6 +25,9 @@ import androidx.compose.ui.node.PointerInputModifierNode
 import androidx.compose.ui.node.requireDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.util.fastAll
+import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastForEach
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -32,7 +35,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-/** Detecting pan and zoom gesture */
+/** Detecting pan and zoom gesture, and animate fling after all pointers are up */
 internal class TransformGestureNode(
     val onGesture: (
         translationDelta: Offset,
@@ -85,7 +88,7 @@ internal class TransformGestureNode(
         // The logic is based on detectTransformGestures
         do {
             val event = awaitPointerEvent()
-            val canceled = event.changes.any { it.isConsumed }
+            val canceled = event.changes.fastAny { it.isConsumed }
             if (!canceled) {
                 val zoomChange = event.calculateZoom()
                 val panChange = event.calculatePan()
@@ -114,10 +117,10 @@ internal class TransformGestureNode(
                         velocityTracker.addPointerInputChange(it)
                     }
                     // Touch up
-                    if (event.changes.all { it.changedToUp() }) {
+                    if (event.changes.fastAll { it.changedToUp() }) {
                         fling(velocityTracker.calculateVelocity())
                     }
-                    event.changes.forEach {
+                    event.changes.fastForEach {
                         if (it.positionChanged()) {
                             it.consume()
                         }

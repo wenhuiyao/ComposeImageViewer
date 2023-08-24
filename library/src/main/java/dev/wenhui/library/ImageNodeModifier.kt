@@ -28,7 +28,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 fun Modifier.imageNode(imageState: ImageState) =
-    // ImagePositionElement must be before ImageTransformElement
     this then ImagePositionElement(imageState) then ImageTransformElement(imageState)
 
 private data class ImagePositionElement(private val imageState: ImageState) :
@@ -74,10 +73,6 @@ private class ImagePositionNode(var imageState: ImageState) :
                 scaleY = imageState.scale
             })
         }
-    }
-
-    override fun onReset() {
-        imageState.contentBounds = Rect.Zero
     }
 }
 

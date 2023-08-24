@@ -27,6 +27,11 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.max
 
+/**
+ *  A layout composable with [content]. The [ImageViewer] will enable pan/zoom, double tap to zoom
+ *  [content]. It can only take one child and the child layout must specify [ImageViewerScope.imageContentNode]
+ *  to enable support of gesture transform, otherwise, exception will be thrown.
+ */
 @Composable
 fun ImageViewer(
     modifier: Modifier = Modifier,

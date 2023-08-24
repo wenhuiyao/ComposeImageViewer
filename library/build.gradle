@@ -36,6 +36,7 @@ android {
 }
 
 dependencies {
-    compileOnly platform(libs.compose.bom)
-    compileOnly libs.compose.foundation
+    implementation platform(libs.compose.bom)
+    implementation libs.compose.foundation
+    implementation libs.compose.ui.util
 }

@@ -41,7 +41,10 @@ class ImageState(
     var contentBounds = Rect.Zero
         internal set
 
-    /** This is meant to be used internally, do NOT make it publicly. */
+    /**
+     * This is meant to be used internally, do NOT make it publicly. To update image's state,
+     * use [transformBlock]
+     */
     internal fun updatePosition(
         translation: Offset,
         scale: Float,
