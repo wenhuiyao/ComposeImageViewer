@@ -13,3 +13,25 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Gradle files
+.gradle/
+build/
+/*/build/
+
+
+# IntelliJ files
+*.ipr
+*.iws
+.idea/
+
+# Fastlane
+fastlane/report.xml
+fastlane/.env.default
+
+# Ruby gems in Circle build
+vendor/
+.bundle/
+
+# Stetho Python cache
+scripts/__pycache__/

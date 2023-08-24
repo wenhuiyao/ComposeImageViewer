@@ -4,8 +4,8 @@ kotlin = "1.9.0"
 core-ktx = "1.10.1"
 activity-compose = "1.7.2"
 compose-bom = "2023.08.00"
-compose-foundation = "1.6.0-alpha03"
-compose-runtime = "1.6.0-alpha03"
+compose-foundation = "1.6.0-alpha02"
+compose-runtime = "1.6.0-alpha02"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
