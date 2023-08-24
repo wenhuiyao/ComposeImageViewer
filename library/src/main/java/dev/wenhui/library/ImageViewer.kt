@@ -36,14 +36,14 @@ fun ImageViewer(
     Layout(
         modifier = modifier.clipToBounds() then ImageViewerElement(enableGesture),
         measurePolicy = ImageViewerMeasurePolicy,
-        content = { ImageViewerScopeImpl.content() }
+        content = { ImageViewerScopeImpl.content() },
     )
 }
 
 private object ImageViewerMeasurePolicy : MeasurePolicy {
     override fun MeasureScope.measure(
         measurables: List<Measurable>,
-        constraints: Constraints
+        constraints: Constraints,
     ): MeasureResult {
         check(measurables.size == 1) {
             "ImageViewer can only work with single child"
@@ -60,7 +60,7 @@ private object ImageViewerMeasurePolicy : MeasurePolicy {
             val position = Alignment.Center.align(
                 IntSize(placeable.width, placeable.height),
                 IntSize(layoutWidth, layoutHeight),
-                layoutDirection
+                layoutDirection,
             )
             placeable.place(position)
         }
@@ -89,7 +89,7 @@ internal interface ImageNode {
         translationDelta: Offset = Offset.Zero,
         scaleDelta: Float = 1f,
         // this is base on window's coordinates
-        pivotInWindowsCoords: Offset = Offset.Unspecified
+        pivotInWindowsCoords: Offset = Offset.Unspecified,
     )
 
     fun doubleTapToScale(pivotInWindowsCoords: Offset)
@@ -115,7 +115,8 @@ private data class ImageViewerElement(private val enableGesture: Boolean) :
     }
 }
 
-private class ImageViewerNode(enableGesture: Boolean) : DelegatingNode(),
+private class ImageViewerNode(enableGesture: Boolean) :
+    DelegatingNode(),
     ModifierLocalModifierNode,
     ImageNodeProvider,
     PointerInputModifierNode,
@@ -139,13 +140,13 @@ private class ImageViewerNode(enableGesture: Boolean) : DelegatingNode(),
                 imageNode.transform(
                     translationDelta = translationDelta,
                     scaleDelta = scaleDelta,
-                    pivotInWindowsCoords = layoutCoordinates.localToWindow(pivot)
+                    pivotInWindowsCoords = layoutCoordinates.localToWindow(pivot),
                 )
             },
             hasTransformation = { imageNode.hasTransformation },
             onGestureReset = { imageNode.onGestureUpOrCancelled() },
             enabled = enableGesture,
-        )
+        ),
     )
 
     private val doubleTapGestureNode = delegate(
@@ -153,8 +154,8 @@ private class ImageViewerNode(enableGesture: Boolean) : DelegatingNode(),
             onDoubleTap = { pivot ->
                 imageNode.doubleTapToScale(layoutCoordinates.localToWindow(pivot))
             },
-            enabled = enableGesture
-        )
+            enabled = enableGesture,
+        ),
     )
 
     @OptIn(ExperimentalComposeUiApi::class)
@@ -186,13 +187,9 @@ private class ImageViewerNode(enableGesture: Boolean) : DelegatingNode(),
     override fun onPointerEvent(
         pointerEvent: PointerEvent,
         pass: PointerEventPass,
-        bounds: IntSize
+        bounds: IntSize,
     ) {
         doubleTapGestureNode.onPointerEvent(pointerEvent, pass, bounds)
         transformGestureNode.onPointerEvent(pointerEvent, pass, bounds)
     }
-
 }
-
-
-

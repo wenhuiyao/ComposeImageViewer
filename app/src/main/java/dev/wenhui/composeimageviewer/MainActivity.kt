@@ -27,10 +27,10 @@ class MainActivity : ComponentActivity() {
                             title = {
                                 Text(
                                     "Compose ImageViewer",
-                                    color = MaterialTheme.colorScheme.onPrimary
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                 )
                             },
-                            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary),
                         )
                     },
                     modifier = Modifier.fillMaxSize(),

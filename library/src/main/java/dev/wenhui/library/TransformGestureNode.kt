@@ -2,6 +2,7 @@ package dev.wenhui.library
 
 import androidx.compose.animation.SplineBasedFloatDecayAnimationSpec
 import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.core.generateDecayAnimationSpec
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -44,25 +45,26 @@ internal class TransformGestureNode(
 ) : DelegatingNode(), PointerInputModifierNode {
 
     private val velocityTracker = VelocityTracker()
-    private var flingXJob: Job? = null
-    private var flingYJob: Job? = null
+    private var flingJob: Job? = null
 
-    private val pointerInputNode = delegate(SuspendingPointerInputModifierNode {
-        if (!enabled) return@SuspendingPointerInputModifierNode
-        coroutineScope {
-            awaitEachGesture {
-                try {
-                    onGestureReset()
-                    handleGesture()
-                } catch (exception: CancellationException) {
-                    onGestureReset()
-                    if (!isActive) {
-                        throw exception
+    private val pointerInputNode = delegate(
+        SuspendingPointerInputModifierNode {
+            if (!enabled) return@SuspendingPointerInputModifierNode
+            coroutineScope {
+                awaitEachGesture {
+                    try {
+                        onGestureReset()
+                        handleGesture()
+                    } catch (exception: CancellationException) {
+                        onGestureReset()
+                        if (!isActive) {
+                            throw exception
+                        }
                     }
                 }
             }
-        }
-    })
+        },
+    )
 
     private suspend fun AwaitPointerEventScope.handleGesture() {
         var zoom = 1f
@@ -136,47 +138,32 @@ internal class TransformGestureNode(
         if (!hasTransformation()) {
             return
         }
-        flingXJob = flingAnimation(velocity.x) { xDelta ->
-            onGesture(
-                /* translationDelta */ Offset(xDelta, 0f),
-                /* scaleDelta */1f,
-                /* pivot */ Offset.Zero
-            )
-        }
-        flingYJob = flingAnimation(velocity.y) { yDelta ->
-            onGesture(
-                /* translationDelta */ Offset(0f, yDelta),
-                /* scaleDelta */1f,
-                /* pivot */ Offset.Zero
-            )
-        }
-    }
 
-    private inline fun flingAnimation(
-        velocity: Float,
-        crossinline onAnimationUpdate: (delta: Float) -> Unit
-    ): Job {
-        val flingDecay =
-            SplineBasedFloatDecayAnimationSpec(requireDensity())
-                .generateDecayAnimationSpec<Float>()
-        val animation = AnimationState(
-            initialValue = 0f,
-            initialVelocity = velocity
-        )
-        return coroutineScope.launch {
-            var prevValue = 0f
-            animation.animateDecay(flingDecay) {
-                onAnimationUpdate(value - prevValue)
+        val flingDecay = SplineBasedFloatDecayAnimationSpec(requireDensity())
+            .generateDecayAnimationSpec<Offset>()
+        flingJob = coroutineScope.launch {
+            var prevValue = Offset.Zero
+            AnimationState(
+                typeConverter = Offset.VectorConverter,
+                initialValue = prevValue,
+                initialVelocity = Offset(velocity.x, velocity.y),
+            ).animateDecay(flingDecay) {
+                onGesture(
+                    /* translationDelta */
+                    value - prevValue,
+                    /* scaleDelta */
+                    1f,
+                    /* pivot */
+                    Offset.Zero,
+                )
                 prevValue = value
             }
         }
     }
 
     private fun cancelAllAnimations() {
-        flingXJob?.cancel()
-        flingXJob = null
-        flingYJob?.cancel()
-        flingYJob = null
+        flingJob?.cancel()
+        flingJob = null
     }
 
     override fun onReset() {
@@ -190,9 +177,8 @@ internal class TransformGestureNode(
     override fun onPointerEvent(
         pointerEvent: PointerEvent,
         pass: PointerEventPass,
-        bounds: IntSize
+        bounds: IntSize,
     ) {
         pointerInputNode.onPointerEvent(pointerEvent, pass, bounds)
     }
 }
-

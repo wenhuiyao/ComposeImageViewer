@@ -19,9 +19,9 @@ internal class DoubleTapGestureNode(
         SuspendingPointerInputModifierNode {
             if (!enabled) return@SuspendingPointerInputModifierNode
             detectTapGestures(
-                onDoubleTap = { pivot -> onDoubleTap(pivot) }
+                onDoubleTap = { pivot -> onDoubleTap(pivot) },
             )
-        }
+        },
     )
 
     fun update(enabled: Boolean) {
@@ -42,7 +42,7 @@ internal class DoubleTapGestureNode(
     override fun onPointerEvent(
         pointerEvent: PointerEvent,
         pass: PointerEventPass,
-        bounds: IntSize
+        bounds: IntSize,
     ) {
         tapNode.onPointerEvent(pointerEvent, pass, bounds)
     }

@@ -9,52 +9,51 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import dev.wenhui.library.ImageViewer
+import dev.wenhui.library.Transform
 import dev.wenhui.library.fillWidthOrHeight
 import dev.wenhui.library.rememberImageState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageViewerScreen(modifier: Modifier = Modifier) {
-    val loadedMap = remember { mutableStateMapOf<Int, Boolean>() }
     val pages = remember {
         listOf(
             R.drawable.space_1,
+            R.drawable.android_wallpaper,
             R.drawable.space_2,
-            R.drawable.taipei_101,
-            0, // This is text content
+            0, // text content
             R.drawable.in_to_the_wood,
+            R.drawable.curiosity_selfie,
             R.drawable.sunflower,
         )
     }
     val state = rememberPagerState { pages.size }
     HorizontalPager(
         state = state,
-        modifier = modifier
+        modifier = modifier.fillMaxSize(),
+        key = { pages[it] }
     ) { index ->
-        if (loadedMap[index] == true) {
-            ImageContentScreen(
-                imageRes = pages[index],
-                // HorizontalPager will intercept touch if page is scrolling,
-                // don't enable image gesture until pager is settled
-                enableGesture = !state.isScrollInProgress && index == state.currentPage
-            )
-        } else {
-            // This is to simulate loading image asynchronously
-            ImageLoadingScreen { loadedMap[state.currentPage] = true }
-        }
+        ImageContentScreen(
+            imageRes = pages[index],
+            // HorizontalPager will intercept touch if page is scrolling,
+            // don't enable image gesture until pager is settled
+            enableGesture = !state.isScrollInProgress && index == state.currentPage,
+        )
     }
 }
 
@@ -62,19 +61,45 @@ fun ImageViewerScreen(modifier: Modifier = Modifier) {
 private fun ImageContentScreen(imageRes: Int, enableGesture: Boolean) {
     ImageViewer(
         modifier = Modifier.fillMaxSize(),
-        enableGesture = enableGesture
+        enableGesture = enableGesture,
     ) {
         if (imageRes == 0) {
+            var transform by remember { mutableStateOf<Transform?>(null) }
+            val imageState = rememberImageState {
+                this.transform = transform
+            }
             // We can pan/zoom other content
-            Text(
-                text = loremIpsum(100),
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier
-                    .imageContentNode(rememberImageState())
-                    .background(color = MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(16.dp)
+            Box(modifier = Modifier.fillMaxSize()) {
+                Text(
+                    text = loremIpsum(100),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .imageContentNode(imageState)
+                        .background(color = MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(16.dp),
 
-            )
+                )
+                Button(
+                    onClick = {
+                        // Scale the content to the max, and move it to the bottom right corner,
+                        // Or simply set transformOrigin to (1f,1f) will also acheive the same effect
+                        transform = Transform(
+                            translation = Offset(
+                                x = -imageState.contentBounds.width * imageState.maxScale,
+                                y = -imageState.contentBounds.height * imageState.maxScale,
+                            ),
+                            scale = imageState.maxScale,
+                            shouldAnimate = true,
+                        )
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 36.dp),
+                ) {
+                    Text(text = "Zoom to bottom right")
+                }
+            }
         } else {
             Image(
                 painter = painterResource(id = imageRes),
@@ -82,23 +107,8 @@ private fun ImageContentScreen(imageRes: Int, enableGesture: Boolean) {
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .imageContentNode(rememberImageState())
-                    .fillWidthOrHeight()
+                    .fillWidthOrHeight(),
             )
-        }
-    }
-}
-
-@Composable
-private fun ImageLoadingScreen(onClick: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        Button(
-            onClick = onClick,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 36.dp)
-        ) {
-            Text(text = "Tap to load image")
         }
     }
 }
@@ -129,4 +139,3 @@ fun loremIpsum(words: Int = 20, offset: Int = 0): String {
     return LOREM_IPSUM_SOURCE.subList(fromIndex = offset, toIndex = offset + words)
         .joinToString(separator = " ")
 }
-

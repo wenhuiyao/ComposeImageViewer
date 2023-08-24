@@ -8,17 +8,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
 
-
+/** Use [transformBlock] to control the current transform state */
 @Composable
-fun rememberImageState(minScale: Float = 0.8f, maxScale: Float = 4f): ImageState {
-    return remember { ImageState(minScale, maxScale) }
+fun rememberImageState(
+    minScale: Float = 0.8f,
+    maxScale: Float = 5f,
+    transformBlock: (TransformRequest.() -> Unit)? = null,
+): ImageState {
+    return remember { ImageState(minScale, maxScale, transformBlock) }
 }
 
 /** The state of current image transformation */
 @Stable
-class ImageState(val minScale: Float, val maxScale: Float) {
+class ImageState(
+    val minScale: Float,
+    val maxScale: Float,
+    val transformBlock: (TransformRequest.() -> Unit)?,
+) {
     private var _translation: Offset by mutableStateOf(Offset.Zero)
     val translation: Offset get() = _translation
 
@@ -29,13 +38,30 @@ class ImageState(val minScale: Float, val maxScale: Float) {
     val transformOrigin: TransformOrigin
         get() = _transformOrigin
 
+    var contentBounds = Rect.Zero
+        internal set
+
+    /** This is meant to be used internally, do NOT make it publicly. */
     internal fun updatePosition(
         translation: Offset,
         scale: Float,
-        transformOrigin: TransformOrigin
+        transformOrigin: TransformOrigin,
     ) {
         _translation = translation
         _scale = scale
         _transformOrigin = transformOrigin
     }
 }
+
+class Transform(
+    val translation: Offset,
+    val scale: Float,
+    val shouldAnimate: Boolean,
+    val transformOrigin: TransformOrigin = TransformOrigin.Center,
+)
+
+interface TransformRequest {
+    var transform: Transform?
+}
+
+internal class TransformRequestImpl(override var transform: Transform? = null) : TransformRequest

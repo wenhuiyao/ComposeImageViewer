@@ -2,12 +2,10 @@ package dev.wenhui.library
 
 import android.graphics.Matrix
 import android.graphics.RectF
-import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.TransformOrigin
-
 
 fun Transformation(): Transformation {
     return TransformationImpl()
@@ -27,7 +25,7 @@ interface Transformation {
         maxScale: Float,
         translationDelta: Offset = Offset.Zero,
         scaleDelta: Float = 1f,
-        pivot: Offset = Offset.Zero
+        pivot: Offset = Offset.Zero,
     ): TransformedResult
 
     interface TransformedResult {
@@ -68,7 +66,7 @@ private class TransformationImpl :
             val allowScaleDelta = getSafeScaleDelta(
                 minScale = minScale,
                 maxScale = maxScale,
-                scaleDelta = scaleDelta
+                scaleDelta = scaleDelta,
             )
             // The pivot is based on the original content bounds, we need to transform it
             // to latest coordinates
@@ -77,7 +75,7 @@ private class TransformationImpl :
                 allowScaleDelta,
                 allowScaleDelta,
                 transformedPivot.x,
-                transformedPivot.y
+                transformedPivot.y,
             )
         }
         matrix.postTranslate(translationDelta.x, translationDelta.y)
@@ -89,10 +87,10 @@ private class TransformationImpl :
             scale = matrixValuesHolder[Matrix.MSCALE_X],
             translation = Offset(
                 matrixValuesHolder[Matrix.MTRANS_X],
-                matrixValuesHolder[Matrix.MTRANS_Y]
+                matrixValuesHolder[Matrix.MTRANS_Y],
             ),
             // Android matrix scale is using [0,0] as its default pivot point
-            transformOrigin = transformOriginZero
+            transformOrigin = transformOriginZero,
         )
         return transformedResultHolder
     }
@@ -173,7 +171,7 @@ private class TransformationImpl :
     private fun RectF.transformByOriginZero(
         scale: Float,
         translationX: Float,
-        translationY: Float
+        translationY: Float,
     ) {
         offset(translationX, translationY)
         right = left + width() * scale
