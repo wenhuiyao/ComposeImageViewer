@@ -27,7 +27,11 @@ import androidx.compose.ui.unit.toSize
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+/**
+ * The main modifier for enable image content transformation
+ */
 fun Modifier.imageNode(imageState: ImageState) =
+    // ImagePositionElement must be before ImageTransformElement, see ImagePositionNode docs for more details
     this then ImagePositionElement(imageState) then ImageTransformElement(imageState)
 
 private data class ImagePositionElement(private val imageState: ImageState) :
@@ -40,7 +44,8 @@ private data class ImagePositionElement(private val imageState: ImageState) :
 
 /**
  * Must separate [ImagePositionNode] from [ImageTransformNode] so [ImageTransformNode] can observe
- * layout bounds changed.
+ * layout bounds changed. The same node won't get latest bounds update from its own or left modifier
+ * layout measure,
  */
 private class ImagePositionNode(var imageState: ImageState) :
     Modifier.Node(),
