@@ -181,6 +181,8 @@ private class ImageTransformNode(private var imageState: ImageState) :
         val transformResult = transformation.applyTransform(
             contentBounds = contentBounds,
             parentSize = parentSize,
+            minScale = imageState.minScale,
+            maxScale = imageState.maxScale,
             scaleDelta = scaleDelta,
             translationDelta = translationDelta,
             pivot = localPivot,

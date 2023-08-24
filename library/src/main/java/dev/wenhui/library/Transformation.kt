@@ -9,8 +9,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.TransformOrigin
 
 
-fun Transformation(maxScale: Float = 4f, minScale: Float = 0.8f): Transformation {
-    return TransformationImpl(maxScale, minScale)
+fun Transformation(): Transformation {
+    return TransformationImpl()
 }
 
 /**
@@ -23,6 +23,8 @@ interface Transformation {
     fun applyTransform(
         contentBounds: Rect,
         parentSize: Size,
+        minScale: Float,
+        maxScale: Float,
         translationDelta: Offset = Offset.Zero,
         scaleDelta: Float = 1f,
         pivot: Offset = Offset.Zero
@@ -41,7 +43,7 @@ private val transformOriginZero = TransformOrigin(pivotFractionX = 0f, pivotFrac
  * Unfortunately, we can't use [androidx.compose.ui.graphics.Matrix], it doesn't support scale with
  * pivot point. Instead, fallback to use Android [Matrix]
  */
-private class TransformationImpl(val maxScale: Float, val minScale: Float) :
+private class TransformationImpl :
     Transformation {
 
     private val matrix = Matrix()
@@ -56,12 +58,18 @@ private class TransformationImpl(val maxScale: Float, val minScale: Float) :
     override fun applyTransform(
         contentBounds: Rect,
         parentSize: Size,
+        minScale: Float,
+        maxScale: Float,
         translationDelta: Offset,
         scaleDelta: Float,
         pivot: Offset,
     ): Transformation.TransformedResult {
         if (scaleDelta != 1f) {
-            val allowScaleDelta = getSafeScaleDelta(scaleDelta)
+            val allowScaleDelta = getSafeScaleDelta(
+                minScale = minScale,
+                maxScale = maxScale,
+                scaleDelta = scaleDelta
+            )
             // The pivot is based on the original content bounds, we need to transform it
             // to latest coordinates
             val transformedPivot = pivot.toTransformedPivot()
@@ -92,7 +100,7 @@ private class TransformationImpl(val maxScale: Float, val minScale: Float) :
     /**
      * Make sure we don't scale outside of allowed [minScale] and [maxScale] range
      */
-    private fun getSafeScaleDelta(scaleDelta: Float): Float {
+    private fun getSafeScaleDelta(minScale: Float, maxScale: Float, scaleDelta: Float): Float {
         matrix.getValues(matrixValuesHolder)
         val toBeScale =
             (matrixValuesHolder[Matrix.MSCALE_X] * scaleDelta).coerceIn(minScale, maxScale)

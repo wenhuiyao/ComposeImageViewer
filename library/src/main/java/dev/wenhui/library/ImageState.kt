@@ -12,13 +12,13 @@ import androidx.compose.ui.graphics.TransformOrigin
 
 
 @Composable
-fun rememberImageState(): ImageState {
-    return remember { ImageState() }
+fun rememberImageState(minScale: Float = 0.8f, maxScale: Float = 4f): ImageState {
+    return remember { ImageState(minScale, maxScale) }
 }
 
 /** The state of current image transformation */
 @Stable
-class ImageState {
+class ImageState(val minScale: Float, val maxScale: Float) {
     private var _translation: Offset by mutableStateOf(Offset.Zero)
     val translation: Offset get() = _translation
 
