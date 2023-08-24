@@ -14,10 +14,7 @@ import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.modifier.ModifierLocalMap
 import androidx.compose.ui.modifier.ModifierLocalModifierNode
-import androidx.compose.ui.modifier.modifierLocalMapOf
-import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.node.GlobalPositionAwareModifierNode
 import androidx.compose.ui.node.LayoutAwareModifierNode
 import androidx.compose.ui.node.LayoutModifierNode
@@ -34,9 +31,6 @@ fun Modifier.imageNode(imageState: ImageState) =
     // ImagePositionElement must be before ImageTransformElement
     this then ImagePositionElement(imageState) then ImageTransformElement(imageState)
 
-private val ImagePositionNodeLocal =
-    modifierLocalOf<ImagePositionNode> { error("Missing ImagePositionNode") }
-
 private data class ImagePositionElement(private val imageState: ImageState) :
     ModifierNodeElement<ImagePositionNode>() {
     override fun create(): ImagePositionNode = ImagePositionNode(imageState)
@@ -52,12 +46,8 @@ private data class ImagePositionElement(private val imageState: ImageState) :
 private class ImagePositionNode(var imageState: ImageState) :
     Modifier.Node(),
     LayoutModifierNode,
-    ModifierLocalModifierNode,
     GlobalPositionAwareModifierNode,
     LayoutAwareModifierNode {
-
-    override val providedValues: ModifierLocalMap =
-        modifierLocalMapOf(ImagePositionNodeLocal to this)
 
     override fun onRemeasured(size: IntSize) {
         // If content has changed, make sure reset our content bounds

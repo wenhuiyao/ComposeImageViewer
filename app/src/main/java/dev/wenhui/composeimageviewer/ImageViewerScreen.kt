@@ -46,7 +46,7 @@ fun ImageViewerScreen(modifier: Modifier = Modifier) {
     HorizontalPager(
         state = state,
         modifier = modifier.fillMaxSize(),
-        key = { pages[it] }
+        key = { pages[it] },
     ) { index ->
         ImageContentScreen(
             imageRes = pages[index],
