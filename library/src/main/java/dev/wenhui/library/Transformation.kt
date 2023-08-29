@@ -70,7 +70,7 @@ private class TransformationImpl :
             )
             // The pivot is based on the original content bounds, we need to transform it
             // to latest coordinates
-            val transformedPivot = pivot.toTransformedPivot()
+            val transformedPivot = pivot.applyTransform()
             matrix.postScale(
                 allowScaleDelta,
                 allowScaleDelta,
@@ -83,7 +83,7 @@ private class TransformationImpl :
         ensureContentInBounds(contentBounds, parentSize)
 
         matrix.getValues(matrixValuesHolder)
-        transformedResultHolder.update(
+        return transformedResultHolder.update(
             scale = matrixValuesHolder[Matrix.MSCALE_X],
             translation = Offset(
                 matrixValuesHolder[Matrix.MTRANS_X],
@@ -92,7 +92,6 @@ private class TransformationImpl :
             // Android matrix scale is using [0,0] as its default pivot point
             transformOrigin = transformOriginZero,
         )
-        return transformedResultHolder
     }
 
     /**
@@ -106,7 +105,7 @@ private class TransformationImpl :
     }
 
     /** Apply current transform to this offset */
-    private fun Offset.toTransformedPivot(): Offset {
+    private fun Offset.applyTransform(): Offset {
         pointHolder[0] = x
         pointHolder[1] = y
         matrix.mapPoints(pointHolder)
@@ -187,7 +186,7 @@ private class TransformationImpl :
             scale: Float,
             translation: Offset,
             transformOrigin: TransformOrigin,
-        ) {
+        ) = apply {
             this.scale = scale
             this.translation = translation
             this.transformOrigin = transformOrigin

@@ -1,14 +1,13 @@
 package dev.wenhui.composeimageviewer
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,9 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
@@ -63,50 +62,36 @@ private fun ImageContentScreen(imageRes: Int, enableGesture: Boolean) {
         modifier = Modifier.fillMaxSize(),
         enableGesture = enableGesture,
     ) {
+        var transform by remember { mutableStateOf<Transform?>(null) }
+        val imageState = rememberImageState {
+            this.transform = transform
+        }
+        BackHandler(imageState.scale > 1.001f) {
+            transform = Transform(
+                translation = Offset.Zero,
+                scale = 1f,
+                transformOrigin = TransformOrigin.Center,
+                shouldAnimate = true,
+            )
+        }
         if (imageRes == 0) {
-            var transform by remember { mutableStateOf<Transform?>(null) }
-            val imageState = rememberImageState {
-                this.transform = transform
-            }
             // We can pan/zoom other content
-            Box(modifier = Modifier.fillMaxSize()) {
-                Text(
-                    text = loremIpsum(100),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .imageContentNode(imageState)
-                        .background(color = MaterialTheme.colorScheme.secondaryContainer)
-                        .padding(16.dp),
+            Text(
+                text = loremIpsum(100),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier
+                    .transformable(imageState)
+                    .background(color = MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(16.dp),
 
-                )
-                Button(
-                    onClick = {
-                        // Scale the content to the max, and move it to the bottom right corner,
-                        // Or simply set transformOrigin to (1f,1f) will also acheive the same effect
-                        transform = Transform(
-                            translation = Offset(
-                                x = -imageState.contentBounds.width * imageState.maxScale,
-                                y = -imageState.contentBounds.height * imageState.maxScale,
-                            ),
-                            scale = imageState.maxScale,
-                            shouldAnimate = true,
-                        )
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 36.dp),
-                ) {
-                    Text(text = "Zoom to bottom right")
-                }
-            }
+            )
         } else {
             Image(
                 painter = painterResource(id = imageRes),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
                 modifier = Modifier
-                    .imageContentNode(rememberImageState())
+                    .transformable(imageState)
                     .fillWidthOrHeight(),
             )
         }

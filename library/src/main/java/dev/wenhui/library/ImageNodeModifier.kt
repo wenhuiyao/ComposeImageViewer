@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 /**
  * The main modifier for enable image content transformation
  */
-fun Modifier.imageNode(imageState: ImageState) =
+internal fun Modifier.transformableNodes(imageState: ImageState) =
     // ImagePositionElement must be before ImageTransformElement, see ImagePositionNode docs for more details
     this then ImagePositionElement(imageState) then ImageTransformElement(imageState)
 
@@ -236,26 +236,30 @@ private class ImageTransformNode(private var imageState: ImageState) :
 
     override fun onObservedReadsChanged() {
         observeTransformRequest()
-        transformRequest.transform?.let {
-            if (it.shouldAnimate) {
-                animateTransform(it)
+        transformRequest.transform?.let { transform ->
+            if (transform.shouldAnimate) {
+                animateTransform(transform)
             } else {
                 transformInternal(
-                    translationDelta = it.translation - imageState.translation,
-                    scaleDelta = it.scale / imageState.scale,
-                    localPivot = contentBounds.center,
+                    translationDelta = transform.translation - imageState.translation,
+                    scaleDelta = transform.scale / imageState.scale,
+                    localPivot = transform.getLocalPivot(),
                 )
             }
         }
         transformRequest.transform = null
     }
 
+    private fun Transform.getLocalPivot(): Offset {
+        return Offset(
+            x = contentBounds.width * transformOrigin.pivotFractionX,
+            y = contentBounds.height * transformOrigin.pivotFractionY,
+        )
+    }
+
     private fun animateTransform(transform: Transform) {
         cancelAllAnimations()
-        val localPivot = Offset(
-            x = contentBounds.width * transform.transformOrigin.pivotFractionX,
-            y = contentBounds.height * transform.transformOrigin.pivotFractionY,
-        )
+        val localPivot = transform.getLocalPivot()
         if (transform.translation != imageState.translation) {
             animationJobs += coroutineScope.launch {
                 var prevValue = imageState.translation
@@ -265,6 +269,7 @@ private class ImageTransformNode(private var imageState: ImageState) :
                     initialVelocity = Offset.Zero,
                 ).animateTo(
                     targetValue = transform.translation,
+                    animationSpec = spring(stiffness = Spring.StiffnessLow),
                 ) {
                     transformInternal(
                         translationDelta = value - prevValue,

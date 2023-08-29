@@ -38,11 +38,10 @@ class ImageState(
     val transformOrigin: TransformOrigin
         get() = _transformOrigin
 
-    var contentBounds = Rect.Zero
-        internal set
+    internal var contentBounds = Rect.Zero
 
     /**
-     * This is meant to be used internally, do NOT make it publicly. To update image's state,
+     * This is meant to be used internally, do NOT make it public. To update image's state,
      * use [transformBlock]
      */
     internal fun updatePosition(

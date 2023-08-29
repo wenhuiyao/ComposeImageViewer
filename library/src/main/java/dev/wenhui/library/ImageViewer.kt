@@ -29,7 +29,7 @@ import kotlin.math.max
 
 /**
  *  A layout composable with [content]. The [ImageViewer] will enable pan/zoom, double tap to zoom
- *  [content]. It can only take one child and the child layout must specify [ImageViewerScope.imageContentNode]
+ *  [content]. It can only take one child and the child layout must specify [ImageViewerScope.transformable]
  *  to enable support of gesture transform, otherwise, exception will be thrown.
  */
 @Composable
@@ -74,12 +74,12 @@ private object ImageViewerMeasurePolicy : MeasurePolicy {
 
 interface ImageViewerScope {
     /** Child content must call this to enable image transformation */
-    fun Modifier.imageContentNode(imageState: ImageState): Modifier
+    fun Modifier.transformable(imageState: ImageState): Modifier
 }
 
 private object ImageViewerScopeImpl : ImageViewerScope {
-    override fun Modifier.imageContentNode(imageState: ImageState): Modifier =
-        this then imageNode(imageState)
+    override fun Modifier.transformable(imageState: ImageState): Modifier =
+        this then transformableNodes(imageState)
 }
 
 internal interface ImageNodeProvider {
