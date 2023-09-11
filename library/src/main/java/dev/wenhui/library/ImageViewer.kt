@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.modifier.ModifierLocalMap
 import androidx.compose.ui.modifier.ModifierLocalModifierNode
 import androidx.compose.ui.modifier.modifierLocalMapOf
@@ -52,9 +53,6 @@ private object ImageViewerMeasurePolicy : MeasurePolicy {
     ): MeasureResult {
         check(measurables.size == 1) {
             "ImageViewer can only work with single child"
-        }
-        check(constraints.hasFixedWidth && constraints.hasFixedHeight) {
-            "ImageViewer must have fixed size, it's likely you should use fixMaxSize()"
         }
         val contentConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val placeable = measurables.first().measure(contentConstraints)
@@ -137,7 +135,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
         get() = checkNotNull(_imageNode) {
             "Do you forget to call Modifier.imageContentNode() in your child layout"
         }
-    private lateinit var layoutCoordinates: LayoutCoordinates
+    private lateinit var rootCoordinates: LayoutCoordinates
 
     private val transformGestureNode = delegate(
         TransformGestureNode(
@@ -145,7 +143,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
                 imageNode.transform(
                     translationDelta = translationDelta,
                     scaleDelta = scaleDelta,
-                    pivotInWindowsCoords = layoutCoordinates.localToWindow(pivot),
+                    pivotInWindowsCoords = rootCoordinates.localToWindow(pivot),
                 )
             },
             hasTransformation = { imageNode.hasTransformation },
@@ -157,7 +155,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
     private val doubleTapGestureNode = delegate(
         DoubleTapGestureNode(
             onDoubleTap = { pivot ->
-                imageNode.doubleTapToScale(layoutCoordinates.localToWindow(pivot))
+                imageNode.doubleTapToScale(rootCoordinates.localToWindow(pivot))
             },
             enabled = enableGesture,
         ),
@@ -166,7 +164,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
     @OptIn(ExperimentalComposeUiApi::class)
     override fun onAttach() {
         sideEffect {
-            // this is to make sure Modifier.imageContentNode() is called on child layout
+            // this is to make sure Modifier.transformable() is called on child layout
             imageNode
         }
     }
@@ -181,7 +179,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
     }
 
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        this.layoutCoordinates = coordinates
+        this.rootCoordinates = coordinates.findRootCoordinates()
     }
 
     override fun onCancelPointerInput() {

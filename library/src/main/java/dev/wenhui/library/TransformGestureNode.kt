@@ -73,13 +73,17 @@ internal class TransformGestureNode(
         var zoom = 1f
         var pan = Offset.Zero
         var canConsumeTouch = false
-        val touchSlop = viewConfiguration.touchSlop
+        var canConsumePositionChange = false
+        var touchSlop = viewConfiguration.touchSlop
 
         val initialDown = awaitFirstDown(requireUnconsumed = false)
         if (hasTransformation()) {
             // Intercept all touch events after image is in transformed state
             canConsumeTouch = true
-            initialDown.consume()
+            // Reduce touchSlop to half for checking canConsumePositionChange,
+            // this is to make sure we can intercept touch before horizontal scrollable container, i.e
+            // pager, and also allow tap gesture being trigger properly by checking pointer moved
+            touchSlop /= 2
         }
         velocityTracker.resetTracking()
         velocityTracker.addPointerInputChange(initialDown)
@@ -93,18 +97,20 @@ internal class TransformGestureNode(
                 val zoomChange = event.calculateZoom()
                 val panChange = event.calculatePan()
 
-                if (!canConsumeTouch) {
+                if (!canConsumeTouch || !canConsumePositionChange) {
                     zoom *= zoomChange
                     pan += panChange
 
                     val centroidSize = event.calculateCentroidSize(useCurrent = false)
                     val zoomMotion = abs(1 - zoom) * centroidSize
-                    // If we can't swipe, don't need to check panMotion distance
+                    // If we can't swipe, don't need to check panMotion distance, this will allow
+                    // horizontal scroll container, i.e. HorizontalPager to scroll
                     val panMotion = if (hasTransformation()) pan.getDistance() else 0f
 
                     // Check if motion pass touch slop
                     if (zoomMotion > touchSlop || panMotion > touchSlop) {
                         canConsumeTouch = true
+                        canConsumePositionChange = true
                     }
                 }
 
@@ -121,7 +127,7 @@ internal class TransformGestureNode(
                         fling(velocityTracker.calculateVelocity())
                     }
                     event.changes.fastForEach {
-                        if (it.positionChanged()) {
+                        if (canConsumePositionChange && it.positionChanged()) {
                             it.consume()
                         }
                     }

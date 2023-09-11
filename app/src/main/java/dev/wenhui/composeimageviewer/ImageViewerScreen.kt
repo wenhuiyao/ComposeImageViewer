@@ -1,5 +1,6 @@
 package dev.wenhui.composeimageviewer
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -26,6 +27,7 @@ import dev.wenhui.library.ImageViewer
 import dev.wenhui.library.Transform
 import dev.wenhui.library.fillWidthOrHeight
 import dev.wenhui.library.rememberImageState
+import dev.wenhui.library.singleClickOnly
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -44,7 +46,11 @@ fun ImageViewerScreen(modifier: Modifier = Modifier) {
     val state = rememberPagerState { pages.size }
     HorizontalPager(
         state = state,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .singleClickOnly {
+                Log.d("wenhuiTest", "ImageViewerScreen: tap")
+            },
         key = { pages[it] },
     ) { index ->
         ImageContentScreen(

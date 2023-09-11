@@ -81,7 +81,7 @@ private class ImagePositionNode(var imageState: ImageState) :
     }
 }
 
-private const val MIN_DOUBLE_TAP_SCALE_FACTOR = 1.8f
+private const val MIN_DOUBLE_TAP_SCALE_FACTOR = 2f
 
 private data class ImageTransformElement(private val imageState: ImageState) :
     ModifierNodeElement<ImageTransformNode>() {

@@ -26,7 +26,7 @@ fun rememberImageState(
 class ImageState(
     val minScale: Float,
     val maxScale: Float,
-    val transformBlock: (TransformRequest.() -> Unit)?,
+    internal val transformBlock: (TransformRequest.() -> Unit)?,
 ) {
     private var _translation: Offset by mutableStateOf(Offset.Zero)
     val translation: Offset get() = _translation
