@@ -136,7 +136,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
             checkNotNull(_imageNode) {
                 "Do you forget to call Modifier.imageContentNode() in your child layout"
             }
-    private lateinit var rootCoordinates: LayoutCoordinates
+    private lateinit var layoutCoords: LayoutCoordinates
 
     private val transformGestureNode =
         delegate(
@@ -145,7 +145,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
                     imageNode.transform(
                         translationDelta = translationDelta,
                         scaleDelta = scaleDelta,
-                        pivotInWindowsCoords = rootCoordinates.localToWindow(pivot),
+                        pivotInWindowsCoords = layoutCoords.localToWindow(pivot),
                     )
                 },
                 hasTransformation = { imageNode.hasTransformation },
@@ -158,7 +158,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
         delegate(
             DoubleTapGestureNode(
                 onDoubleTap = { pivot ->
-                    imageNode.doubleTapToScale(rootCoordinates.localToWindow(pivot))
+                    imageNode.doubleTapToScale(layoutCoords.localToWindow(pivot))
                 },
                 enabled = enableGesture,
             ),
@@ -182,7 +182,7 @@ private class ImageViewerNode(enableGesture: Boolean) :
     }
 
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
-        this.rootCoordinates = coordinates.findRootCoordinates()
+        this.layoutCoords = coordinates
     }
 
     override fun onCancelPointerInput() {
