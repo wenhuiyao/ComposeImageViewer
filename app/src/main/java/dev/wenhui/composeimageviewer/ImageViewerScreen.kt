@@ -12,10 +12,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
@@ -24,7 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import dev.wenhui.library.ImageViewer
-import dev.wenhui.library.Transform
 import dev.wenhui.library.fillWidthOrHeight
 import dev.wenhui.library.interceptSingleClick
 import dev.wenhui.library.rememberImageState
@@ -73,19 +69,14 @@ private fun ImageContentScreen(
         modifier = Modifier.fillMaxSize(),
         enableGesture = enableGesture,
     ) {
-        var transform by remember { mutableStateOf<Transform?>(null) }
-        val imageState =
-            rememberImageState {
-                this.transform = transform
-            }
+        val imageState = rememberImageState()
         BackHandler(imageState.scale > 1.001f) {
-            transform =
-                Transform(
-                    translation = Offset.Zero,
-                    scale = 1f,
-                    transformOrigin = TransformOrigin.Center,
-                    shouldAnimate = true,
-                )
+            imageState.updateTransform(
+                translation = Offset.Zero,
+                scale = 1f,
+                transformOrigin = TransformOrigin.Center,
+                shouldAnimate = true,
+            )
         }
         if (imageRes == 0) {
             // We can pan/zoom other content

@@ -46,7 +46,7 @@ private data class ImagePositionElement(private val imageState: ImageState) :
 /**
  * Must separate [ImagePositionNode] from [ImageTransformNode] so [ImageTransformNode] can observe
  * layout bounds changed. The same node won't get latest bounds update from its own or left modifier
- * layout measure,
+ * layout measure
  */
 private class ImagePositionNode(var imageState: ImageState) :
     Modifier.Node(),
@@ -103,7 +103,6 @@ private class ImageTransformNode(private var imageState: ImageState) :
     private val currentScale: Float
         get() = imageState.scale
 
-    private val transformRequest = TransformRequestImpl()
     private var transformation = Transformation()
 
     private var parentSize: Size = Size.Zero
@@ -179,7 +178,7 @@ private class ImageTransformNode(private var imageState: ImageState) :
             )
         // This will trigger imageState snapshot state update, which will then trigger
         // imagePositionNode graphicsLayer update
-        imageState.updatePosition(
+        imageState.onTransformUpdated(
             scale = transformResult.scale,
             translation = transformResult.translation,
             transformOrigin = transformResult.transformOrigin,
@@ -244,7 +243,7 @@ private class ImageTransformNode(private var imageState: ImageState) :
 
     override fun onObservedReadsChanged() {
         observeTransformRequest()
-        transformRequest.transform?.let { transform ->
+        imageState.transformRequest?.let { transform ->
             if (transform.shouldAnimate) {
                 animateTransform(transform)
             } else {
@@ -255,7 +254,6 @@ private class ImageTransformNode(private var imageState: ImageState) :
                 )
             }
         }
-        transformRequest.transform = null
     }
 
     private fun Transform.getLocalPivot(): Offset {
@@ -301,8 +299,6 @@ private class ImageTransformNode(private var imageState: ImageState) :
     }
 
     private fun observeTransformRequest() {
-        imageState.transformBlock?.let { transformBlock ->
-            observeReads { transformRequest.transformBlock() }
-        }
+        observeReads { imageState.transformRequest }
     }
 }

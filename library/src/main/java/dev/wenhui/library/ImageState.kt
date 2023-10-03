@@ -37,9 +37,8 @@ import androidx.compose.ui.graphics.TransformOrigin
 fun rememberImageState(
     minScale: Float = 0.8f,
     maxScale: Float = 5f,
-    transformBlock: (TransformRequest.() -> Unit)? = null,
 ): ImageState {
-    return remember { ImageState(minScale, maxScale, transformBlock) }
+    return remember { ImageState(minScale, maxScale) }
 }
 
 /** The state of current image transformation */
@@ -47,7 +46,6 @@ fun rememberImageState(
 class ImageState(
     val minScale: Float,
     val maxScale: Float,
-    internal val transformBlock: (TransformRequest.() -> Unit)?,
 ) {
     private var _translation: Offset by mutableStateOf(Offset.Zero)
     val translation: Offset get() = _translation
@@ -61,11 +59,24 @@ class ImageState(
 
     internal var contentBounds = Rect.Zero
 
-    /**
-     * This is meant to be used internally, do NOT make it public. To update image's state,
-     * use [transformBlock]
-     */
-    internal fun updatePosition(
+    internal var transformRequest by mutableStateOf<Transform?>(null)
+
+    fun updateTransform(
+        translation: Offset,
+        scale: Float,
+        transformOrigin: TransformOrigin = TransformOrigin.Center,
+        shouldAnimate: Boolean = true,
+    ) {
+        this.transformRequest =
+            Transform(
+                translation = translation,
+                scale = scale,
+                transformOrigin = transformOrigin,
+                shouldAnimate = shouldAnimate,
+            )
+    }
+
+    internal fun onTransformUpdated(
         translation: Offset,
         scale: Float,
         transformOrigin: TransformOrigin,
@@ -76,15 +87,9 @@ class ImageState(
     }
 }
 
-class Transform(
+internal class Transform(
     val translation: Offset,
     val scale: Float,
     val shouldAnimate: Boolean,
-    val transformOrigin: TransformOrigin = TransformOrigin.Center,
+    val transformOrigin: TransformOrigin,
 )
-
-interface TransformRequest {
-    var transform: Transform?
-}
-
-internal class TransformRequestImpl(override var transform: Transform? = null) : TransformRequest
