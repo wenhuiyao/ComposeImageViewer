@@ -1,12 +1,11 @@
 [versions]
 agp = "8.2.0-beta05"
 kotlin = "1.9.0"
-core-ktx = "1.10.1"
+core-ktx = "1.12.0"
 activity-compose = "1.7.2"
-compose-bom = "2023.08.00"
-### don't update to 1.6.0-alpha03, it causes issue on content bounds
-compose-foundation = "1.6.0-alpha04"
-compose-ui-util = "1.6.0-alpha04"
+compose-bom = "2023.09.02"
+compose-foundation = "1.6.0-alpha06"
+compose-ui-util = "1.6.0-alpha06"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
