@@ -7,8 +7,8 @@ Not yet support: quick scale (double tap then move finger to zoom)
 ### To use
 
 ```
-ImageView() {
-  Image(modifier = Modifier.imageContentNode())
+ImageViewer() {
+  Image(modifier = Modifier.transformable())
 }
 ```
 
