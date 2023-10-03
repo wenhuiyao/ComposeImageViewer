@@ -26,31 +26,33 @@ import androidx.compose.ui.unit.dp
 import dev.wenhui.library.ImageViewer
 import dev.wenhui.library.Transform
 import dev.wenhui.library.fillWidthOrHeight
+import dev.wenhui.library.interceptSingleClick
 import dev.wenhui.library.rememberImageState
-import dev.wenhui.library.singleClickOnly
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageViewerScreen(modifier: Modifier = Modifier) {
-    val pages = remember {
-        listOf(
-            R.drawable.space_1,
-            R.drawable.android_wallpaper,
-            R.drawable.space_2,
-            0, // text content
-            R.drawable.in_to_the_wood,
-            R.drawable.curiosity_selfie,
-            R.drawable.sunflower,
-        )
-    }
+    val pages =
+        remember {
+            listOf(
+                R.drawable.space_1,
+                R.drawable.android_wallpaper,
+                R.drawable.space_2,
+                0, // text content
+                R.drawable.in_to_the_wood,
+                R.drawable.curiosity_selfie,
+                R.drawable.sunflower,
+            )
+        }
     val state = rememberPagerState { pages.size }
     HorizontalPager(
         state = state,
-        modifier = modifier
-            .fillMaxSize()
-            .singleClickOnly {
-                Log.d("wenhuiTest", "ImageViewerScreen: tap")
-            },
+        modifier =
+            modifier
+                .fillMaxSize()
+                .interceptSingleClick {
+                    Log.d("wenhuiTest", "ImageViewerScreen: tap")
+                },
         key = { pages[it] },
     ) { index ->
         ImageContentScreen(
@@ -63,48 +65,55 @@ fun ImageViewerScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ImageContentScreen(imageRes: Int, enableGesture: Boolean) {
+private fun ImageContentScreen(
+    imageRes: Int,
+    enableGesture: Boolean,
+) {
     ImageViewer(
         modifier = Modifier.fillMaxSize(),
         enableGesture = enableGesture,
     ) {
         var transform by remember { mutableStateOf<Transform?>(null) }
-        val imageState = rememberImageState {
-            this.transform = transform
-        }
+        val imageState =
+            rememberImageState {
+                this.transform = transform
+            }
         BackHandler(imageState.scale > 1.001f) {
-            transform = Transform(
-                translation = Offset.Zero,
-                scale = 1f,
-                transformOrigin = TransformOrigin.Center,
-                shouldAnimate = true,
-            )
+            transform =
+                Transform(
+                    translation = Offset.Zero,
+                    scale = 1f,
+                    transformOrigin = TransformOrigin.Center,
+                    shouldAnimate = true,
+                )
         }
         if (imageRes == 0) {
             // We can pan/zoom other content
             Text(
                 text = loremIpsum(100),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier
-                    .transformable(imageState)
-                    .background(color = MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(16.dp),
-
+                modifier =
+                    Modifier
+                        .transformable(imageState)
+                        .background(color = MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(16.dp),
             )
         } else {
             Image(
                 painter = painterResource(id = imageRes),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .transformable(imageState)
-                    .fillWidthOrHeight(),
+                modifier =
+                    Modifier
+                        .transformable(imageState)
+                        .fillWidthOrHeight(),
             )
         }
     }
 }
 
-private val LOREM_IPSUM_SOURCE = """
+private val LOREM_IPSUM_SOURCE =
+    """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sodales
 laoreet commodo. Phasellus a purus eu risus elementum consequat. Aenean eu
 elit ut nunc convallis laoreet non ut libero. Suspendisse interdum placerat
@@ -124,7 +133,10 @@ orci in neque euismod a blandit libero vehicula.
 """.trim().replace('\n', ' ').split(" ")
 
 /** Wrapper around [LoremIpsum] that supports adding an offset to get more variety. */
-fun loremIpsum(words: Int = 20, offset: Int = 0): String {
+fun loremIpsum(
+    words: Int = 20,
+    offset: Int = 0,
+): String {
     // Space-separation of words isn't a given in the real world, but this is a preview, so this
     // approach works well enough!
     return LOREM_IPSUM_SOURCE.subList(fromIndex = offset, toIndex = offset + words)

@@ -43,10 +43,9 @@ private val transformOriginZero = TransformOrigin(pivotFractionX = 0f, pivotFrac
  */
 private class TransformationImpl :
     Transformation {
-
     private val matrix = Matrix()
 
-    /* *Holders are the temporary objects for computation */
+    // *Holders are the temporary objects for computation
     private val contentBoundsHolder = RectF()
     private val pointHolder = FloatArray(2)
     private val matrixValuesHolder = FloatArray(9)
@@ -63,11 +62,12 @@ private class TransformationImpl :
         pivot: Offset,
     ): Transformation.TransformedResult {
         if (scaleDelta != 1f) {
-            val allowScaleDelta = getSafeScaleDelta(
-                minScale = minScale,
-                maxScale = maxScale,
-                scaleDelta = scaleDelta,
-            )
+            val allowScaleDelta =
+                getSafeScaleDelta(
+                    minScale = minScale,
+                    maxScale = maxScale,
+                    scaleDelta = scaleDelta,
+                )
             // The pivot is based on the original content bounds, we need to transform it
             // to latest coordinates
             val transformedPivot = pivot.applyTransform()
@@ -85,10 +85,11 @@ private class TransformationImpl :
         matrix.getValues(matrixValuesHolder)
         return transformedResultHolder.update(
             scale = matrixValuesHolder[Matrix.MSCALE_X],
-            translation = Offset(
-                matrixValuesHolder[Matrix.MTRANS_X],
-                matrixValuesHolder[Matrix.MTRANS_Y],
-            ),
+            translation =
+                Offset(
+                    matrixValuesHolder[Matrix.MTRANS_X],
+                    matrixValuesHolder[Matrix.MTRANS_Y],
+                ),
             // Android matrix scale is using [0,0] as its default pivot point
             transformOrigin = transformOriginZero,
         )
@@ -97,7 +98,11 @@ private class TransformationImpl :
     /**
      * Make sure we don't scale outside of allowed [minScale] and [maxScale] range
      */
-    private fun getSafeScaleDelta(minScale: Float, maxScale: Float, scaleDelta: Float): Float {
+    private fun getSafeScaleDelta(
+        minScale: Float,
+        maxScale: Float,
+        scaleDelta: Float,
+    ): Float {
         matrix.getValues(matrixValuesHolder)
         val toBeScale =
             (matrixValuesHolder[Matrix.MSCALE_X] * scaleDelta).coerceIn(minScale, maxScale)
@@ -120,7 +125,10 @@ private class TransformationImpl :
      * 2). If the size of an axis is larger than parent's size, don't allow content move inside
      *  parent viewport, i.e. left/top can't > parent's left/top
      */
-    private fun ensureContentInBounds(contentBounds: Rect, parentSize: Size) {
+    private fun ensureContentInBounds(
+        contentBounds: Rect,
+        parentSize: Size,
+    ) {
         val contentBoundsF = contentBounds.toAndroidRectF()
         matrix.getValues(matrixValuesHolder)
         val scale = matrixValuesHolder[Matrix.MSCALE_X]

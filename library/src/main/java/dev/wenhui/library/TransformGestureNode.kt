@@ -46,28 +46,28 @@ internal class TransformGestureNode(
     val onGestureReset: () -> Unit,
     private var enabled: Boolean = true,
 ) : DelegatingNode(), PointerInputModifierNode {
-
     private val velocityTracker = VelocityTracker()
     private var flingJob: Job? = null
 
-    private val pointerInputNode = delegate(
-        SuspendingPointerInputModifierNode {
-            if (!enabled) return@SuspendingPointerInputModifierNode
-            coroutineScope {
-                awaitEachGesture {
-                    try {
-                        onGestureReset()
-                        handleGesture()
-                    } catch (exception: CancellationException) {
-                        onGestureReset()
-                        if (!isActive) {
-                            throw exception
+    private val pointerInputNode =
+        delegate(
+            SuspendingPointerInputModifierNode {
+                if (!enabled) return@SuspendingPointerInputModifierNode
+                coroutineScope {
+                    awaitEachGesture {
+                        try {
+                            onGestureReset()
+                            handleGesture()
+                        } catch (exception: CancellationException) {
+                            onGestureReset()
+                            if (!isActive) {
+                                throw exception
+                            }
                         }
                     }
                 }
-            }
-        },
-    )
+            },
+        )
 
     private suspend fun AwaitPointerEventScope.handleGesture() {
         var zoom = 1f
@@ -148,26 +148,28 @@ internal class TransformGestureNode(
             return
         }
 
-        val flingDecay = SplineBasedFloatDecayAnimationSpec(requireDensity())
-            .generateDecayAnimationSpec<Offset>()
-        flingJob = coroutineScope.launch {
-            var prevValue = Offset.Zero
-            AnimationState(
-                typeConverter = Offset.VectorConverter,
-                initialValue = prevValue,
-                initialVelocity = Offset(velocity.x, velocity.y),
-            ).animateDecay(flingDecay) {
-                onGesture(
-                    /* translationDelta */
-                    value - prevValue,
-                    /* scaleDelta */
-                    1f,
-                    /* pivot */
-                    Offset.Zero,
-                )
-                prevValue = value
+        val flingDecay =
+            SplineBasedFloatDecayAnimationSpec(requireDensity())
+                .generateDecayAnimationSpec<Offset>()
+        flingJob =
+            coroutineScope.launch {
+                var prevValue = Offset.Zero
+                AnimationState(
+                    typeConverter = Offset.VectorConverter,
+                    initialValue = prevValue,
+                    initialVelocity = Offset(velocity.x, velocity.y),
+                ).animateDecay(flingDecay) {
+                    onGesture(
+                        // translationDelta
+                        value - prevValue,
+                        // scaleDelta
+                        1f,
+                        // pivot
+                        Offset.Zero,
+                    )
+                    prevValue = value
+                }
             }
-        }
     }
 
     private fun cancelAllAnimations() {

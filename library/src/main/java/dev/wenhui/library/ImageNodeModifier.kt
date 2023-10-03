@@ -37,6 +37,7 @@ internal fun Modifier.transformableNodes(imageState: ImageState) =
 private data class ImagePositionElement(private val imageState: ImageState) :
     ModifierNodeElement<ImagePositionNode>() {
     override fun create(): ImagePositionNode = ImagePositionNode(imageState)
+
     override fun update(node: ImagePositionNode) {
         node.imageState = imageState
     }
@@ -52,7 +53,6 @@ private class ImagePositionNode(var imageState: ImageState) :
     LayoutModifierNode,
     GlobalPositionAwareModifierNode,
     LayoutAwareModifierNode {
-
     override fun onRemeasured(size: IntSize) {
         // If content has changed, make sure reset our content bounds
         imageState.contentBounds = Rect.Zero
@@ -86,6 +86,7 @@ private const val MIN_DOUBLE_TAP_SCALE_FACTOR = 2f
 private data class ImageTransformElement(private val imageState: ImageState) :
     ModifierNodeElement<ImageTransformNode>() {
     override fun create(): ImageTransformNode = ImageTransformNode(imageState)
+
     override fun update(node: ImageTransformNode) {
         node.update(imageState)
     }
@@ -97,7 +98,6 @@ private class ImageTransformNode(private var imageState: ImageState) :
     GlobalPositionAwareModifierNode,
     ObserverModifierNode,
     ImageNode {
-
     private val contentBounds: Rect
         get() = imageState.contentBounds
     private val currentScale: Float
@@ -167,15 +167,16 @@ private class ImageTransformNode(private var imageState: ImageState) :
         scaleDelta: Float,
         localPivot: Offset,
     ) {
-        val transformResult = transformation.applyTransform(
-            contentBounds = contentBounds,
-            parentSize = parentSize,
-            minScale = imageState.minScale,
-            maxScale = imageState.maxScale,
-            scaleDelta = scaleDelta,
-            translationDelta = translationDelta,
-            pivot = localPivot,
-        )
+        val transformResult =
+            transformation.applyTransform(
+                contentBounds = contentBounds,
+                parentSize = parentSize,
+                minScale = imageState.minScale,
+                maxScale = imageState.maxScale,
+                scaleDelta = scaleDelta,
+                translationDelta = translationDelta,
+                pivot = localPivot,
+            )
         // This will trigger imageState snapshot state update, which will then trigger
         // imagePositionNode graphicsLayer update
         imageState.updatePosition(
@@ -187,31 +188,38 @@ private class ImageTransformNode(private var imageState: ImageState) :
 
     override fun doubleTapToScale(pivotInWindowsCoords: Offset) {
         cancelAllAnimations()
-        animationJobs += animateScale(
-            initialScale = currentScale,
-            targetScale = if (currentScale > 1.1f) {
-                1f
-            } else {
-                maxOf(
-                    parentSize.height / contentBounds.height,
-                    parentSize.width / contentBounds.width,
-                    MIN_DOUBLE_TAP_SCALE_FACTOR,
-                )
-            },
-            pivot = layoutCoordinates.windowToLocal(pivotInWindowsCoords),
-        )
+        animationJobs +=
+            animateScale(
+                initialScale = currentScale,
+                targetScale =
+                    if (currentScale > 1.1f) {
+                        1f
+                    } else {
+                        maxOf(
+                            parentSize.height / contentBounds.height,
+                            parentSize.width / contentBounds.width,
+                            MIN_DOUBLE_TAP_SCALE_FACTOR,
+                        )
+                    },
+                pivot = layoutCoordinates.windowToLocal(pivotInWindowsCoords),
+            )
     }
 
     private fun animateScaleToOrigin() {
         cancelAllAnimations()
-        animationJobs += animateScale(
-            initialScale = currentScale,
-            targetScale = 1f,
-            pivot = contentBounds.center,
-        )
+        animationJobs +=
+            animateScale(
+                initialScale = currentScale,
+                targetScale = 1f,
+                pivot = contentBounds.center,
+            )
     }
 
-    private fun animateScale(initialScale: Float, targetScale: Float, pivot: Offset): Job {
+    private fun animateScale(
+        initialScale: Float,
+        targetScale: Float,
+        pivot: Offset,
+    ): Job {
         return coroutineScope.launch {
             var prevScale = initialScale
             AnimationState(initialValue = initialScale).animateTo(
@@ -261,32 +269,34 @@ private class ImageTransformNode(private var imageState: ImageState) :
         cancelAllAnimations()
         val localPivot = transform.getLocalPivot()
         if (transform.translation != imageState.translation) {
-            animationJobs += coroutineScope.launch {
-                var prevValue = imageState.translation
-                AnimationState(
-                    typeConverter = Offset.VectorConverter,
-                    initialValue = imageState.translation,
-                    initialVelocity = Offset.Zero,
-                ).animateTo(
-                    targetValue = transform.translation,
-                    animationSpec = spring(stiffness = Spring.StiffnessLow),
-                ) {
-                    transformInternal(
-                        translationDelta = value - prevValue,
-                        scaleDelta = 1f,
-                        localPivot = localPivot,
-                    )
-                    prevValue = value
+            animationJobs +=
+                coroutineScope.launch {
+                    var prevValue = imageState.translation
+                    AnimationState(
+                        typeConverter = Offset.VectorConverter,
+                        initialValue = imageState.translation,
+                        initialVelocity = Offset.Zero,
+                    ).animateTo(
+                        targetValue = transform.translation,
+                        animationSpec = spring(stiffness = Spring.StiffnessLow),
+                    ) {
+                        transformInternal(
+                            translationDelta = value - prevValue,
+                            scaleDelta = 1f,
+                            localPivot = localPivot,
+                        )
+                        prevValue = value
+                    }
                 }
-            }
         }
 
         if (transform.scale != imageState.scale) {
-            animationJobs += animateScale(
-                initialScale = imageState.scale,
-                targetScale = transform.scale,
-                pivot = localPivot,
-            )
+            animationJobs +=
+                animateScale(
+                    initialScale = imageState.scale,
+                    targetScale = transform.scale,
+                    pivot = localPivot,
+                )
         }
     }
 

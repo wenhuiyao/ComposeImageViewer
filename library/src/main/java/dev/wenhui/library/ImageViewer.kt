@@ -60,11 +60,12 @@ private object ImageViewerMeasurePolicy : MeasurePolicy {
         val layoutHeight = max(placeable.height, constraints.minHeight)
         return layout(layoutWidth, layoutHeight) {
             // Always position child at the center
-            val position = Alignment.Center.align(
-                IntSize(placeable.width, placeable.height),
-                IntSize(layoutWidth, layoutHeight),
-                layoutDirection,
-            )
+            val position =
+                Alignment.Center.align(
+                    IntSize(placeable.width, placeable.height),
+                    IntSize(layoutWidth, layoutHeight),
+                    layoutDirection,
+                )
             placeable.place(position)
         }
     }
@@ -76,8 +77,7 @@ interface ImageViewerScope {
 }
 
 private object ImageViewerScopeImpl : ImageViewerScope {
-    override fun Modifier.transformable(imageState: ImageState): Modifier =
-        this then transformableNodes(imageState)
+    override fun Modifier.transformable(imageState: ImageState): Modifier = this then transformableNodes(imageState)
 }
 
 internal interface ImageNodeProvider {
@@ -100,9 +100,10 @@ internal interface ImageNode {
     fun onGestureUpOrCancelled()
 }
 
-internal val ImageNodeProviderLocal = modifierLocalOf<ImageNodeProvider> {
-    error("Missing ImageNodeProvider")
-}
+internal val ImageNodeProviderLocal =
+    modifierLocalOf<ImageNodeProvider> {
+        error("Missing ImageNodeProvider")
+    }
 
 private data class ImageViewerElement(private val enableGesture: Boolean) :
     ModifierNodeElement<ImageViewerNode>() {
@@ -124,7 +125,6 @@ private class ImageViewerNode(enableGesture: Boolean) :
     ImageNodeProvider,
     PointerInputModifierNode,
     GlobalPositionAwareModifierNode {
-
     // Pass a handle to the ImageNode provider child layout tree where child node
     // will provide the actual imageNode
     override val providedValues: ModifierLocalMap =
@@ -132,34 +132,37 @@ private class ImageViewerNode(enableGesture: Boolean) :
 
     private var _imageNode: ImageNode? = null
     private val imageNode: ImageNode
-        get() = checkNotNull(_imageNode) {
-            "Do you forget to call Modifier.imageContentNode() in your child layout"
-        }
+        get() =
+            checkNotNull(_imageNode) {
+                "Do you forget to call Modifier.imageContentNode() in your child layout"
+            }
     private lateinit var rootCoordinates: LayoutCoordinates
 
-    private val transformGestureNode = delegate(
-        TransformGestureNode(
-            onGesture = { translationDelta, scaleDelta, pivot ->
-                imageNode.transform(
-                    translationDelta = translationDelta,
-                    scaleDelta = scaleDelta,
-                    pivotInWindowsCoords = rootCoordinates.localToWindow(pivot),
-                )
-            },
-            hasTransformation = { imageNode.hasTransformation },
-            onGestureReset = { imageNode.onGestureUpOrCancelled() },
-            enabled = enableGesture,
-        ),
-    )
+    private val transformGestureNode =
+        delegate(
+            TransformGestureNode(
+                onGesture = { translationDelta, scaleDelta, pivot ->
+                    imageNode.transform(
+                        translationDelta = translationDelta,
+                        scaleDelta = scaleDelta,
+                        pivotInWindowsCoords = rootCoordinates.localToWindow(pivot),
+                    )
+                },
+                hasTransformation = { imageNode.hasTransformation },
+                onGestureReset = { imageNode.onGestureUpOrCancelled() },
+                enabled = enableGesture,
+            ),
+        )
 
-    private val doubleTapGestureNode = delegate(
-        DoubleTapGestureNode(
-            onDoubleTap = { pivot ->
-                imageNode.doubleTapToScale(rootCoordinates.localToWindow(pivot))
-            },
-            enabled = enableGesture,
-        ),
-    )
+    private val doubleTapGestureNode =
+        delegate(
+            DoubleTapGestureNode(
+                onDoubleTap = { pivot ->
+                    imageNode.doubleTapToScale(rootCoordinates.localToWindow(pivot))
+                },
+                enabled = enableGesture,
+            ),
+        )
 
     @OptIn(ExperimentalComposeUiApi::class)
     override fun onAttach() {
