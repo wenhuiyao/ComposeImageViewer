@@ -1,6 +1,7 @@
 package dev.wenhui.library
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -72,10 +73,12 @@ private object ImageViewerMeasurePolicy : MeasurePolicy {
 
 interface ImageViewerScope {
     /** Child content must call this to enable image transformation */
+    @Stable
     fun Modifier.transformable(imageState: ImageState): Modifier
 }
 
 private object ImageViewerScopeImpl : ImageViewerScope {
+    @Stable
     override fun Modifier.transformable(imageState: ImageState): Modifier = this then transformableNodes(imageState)
 }
 

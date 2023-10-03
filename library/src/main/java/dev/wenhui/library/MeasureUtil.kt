@@ -26,8 +26,8 @@ fun Modifier.fillWidthOrHeight() =
 
 /**
  * Measure element to fill either width or height depends on the aspect ratio of the element's
- * [intrinsicWidth] and [intrinsicHeight], it's useful with image to fill the max of both width
- * and height.
+ * [intrinsicWidth] and [intrinsicHeight], it's useful with image to fill the max of either width
+ * or height.
  */
 fun Modifier.fillWidthOrHeight(
     intrinsicWidth: Int,
