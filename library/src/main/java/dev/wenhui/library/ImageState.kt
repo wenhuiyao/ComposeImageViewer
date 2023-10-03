@@ -11,7 +11,28 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
 
-/** Use [transformBlock] to control the current transform state */
+/**
+ * Use [transformBlock] to control the current transform state, i.e. manually zoom image back to its
+ * origin,
+ *
+ * ```
+ * var transform by remember {
+ *   mutableStateOf<Transform?>(null)
+ * }
+ * rememberImageState{ this.transform = transform }
+ *
+ * BackHandler {
+ *    transform = Transform(
+ *       translation = Offset.Zero,
+ *       transformOrigin = TransformOrigin.Center,
+ *       scale = 1f,
+ *       shouldAnimate = true,
+ *   )
+ * }
+ * ```
+ *
+ * will transform image back to its original position on back pressed.
+ */
 @Composable
 fun rememberImageState(
     minScale: Float = 0.8f,
